@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>施術報告文ジェネレーター v2</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;--bg:#f4f6f6;--card:#fff;--ink:#17252b;--muted:#53616a;--line:#d8dfe1;--accent:#176b61;--accent-text:#fff;--soft:#e8f3f0;--danger:#99483e;--shadow:0 2px 10px rgba(23,37,43,.04);color-scheme:light}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);margin:0;font-size:16px;line-height:1.55}
+main{max-width:620px;margin:auto;padding:18px 14px 130px}
+h1{font-size:22px;letter-spacing:.01em;margin:5px 0 3px}h2{font-size:17px;margin:0 0 9px}p{margin:0 0 10px}
+.eyebrow{color:var(--accent);font-size:12px;font-weight:750;letter-spacing:.06em}
+.sub,.hint{color:var(--muted);font-size:13px}.hint{margin:7px 0 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:16px;margin-top:15px;box-shadow:var(--shadow)}
+.standard{background:var(--soft);padding:13px;border-radius:10px;margin:11px 0;font-size:14px}
+button,select,textarea{font:inherit}
+button{appearance:none;-webkit-appearance:none;touch-action:manipulation;border-radius:11px;border:1px solid var(--line);min-height:46px;cursor:pointer;font-weight:700}
+.primary{color:var(--accent-text);background:var(--accent);border-color:var(--accent)}
+.secondary{color:var(--ink);background:var(--card)}
+.ghost{color:var(--danger);background:transparent;border:0;padding:5px 10px;min-height:42px}
+.wide{width:100%}button:disabled{opacity:.5;cursor:not-allowed}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
+.counter{color:var(--muted);font-size:12px}
+.entry{border:1px solid var(--line);border-radius:12px;padding:12px;margin:12px 0;background:var(--card)}
+.entry-head{display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:700}
+.three{display:grid;grid-template-columns:1.25fr .87fr 1.1fr;gap:8px;margin-top:6px}
+.field label{display:block;font-size:12px;color:var(--muted);font-weight:700;margin-bottom:4px}
+select{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:9px;min-width:0;width:100%;padding:9px 6px;min-height:46px;font-size:16px}
+select:disabled{opacity:.55}
+textarea{width:100%;min-height:90px;border:1px solid var(--line);border-radius:10px;padding:11px;resize:vertical;background:var(--card);color:var(--ink);font-size:16px;line-height:1.65}
+#result{min-height:148px}
+.foot-actions{position:fixed;left:0;right:0;bottom:0;padding:10px 13px calc(10px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--line);box-shadow:0 -3px 12px rgba(0,0,0,.07);z-index:5}
+.foot-inner{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:600px;margin:auto}
+.foot-actions button{min-height:48px}
+.msg{font-size:13px;color:var(--muted);padding:9px 0 0;min-height:25px}.msg.ok{color:var(--accent)}.msg.warn{color:var(--danger)}
+.badge{display:inline-block;padding:2px 7px;border-radius:5px;background:var(--soft);color:var(--accent);font-size:12px;font-weight:700}
+.empty{border:1px dashed var(--line);border-radius:12px;background:var(--bg);padding:15px;color:var(--muted);font-size:14px;text-align:center;margin:11px 0}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.small-button{min-height:42px;font-size:13px;padding:6px 14px}
+hr{border:0;border-top:1px solid var(--line);margin:16px 0}
+#preview-info{font-size:13px;color:var(--muted);margin-top:7px}
+@media(prefers-color-scheme:dark){:root{--bg:#12191d;--card:#20292e;--ink:#edf3f2;--muted:#b0bec0;--line:#465359;--accent:#62cbb4;--accent-text:#09221e;--soft:#193b35;--danger:#e3a296;--shadow:none;color-scheme:dark}}
+@media(max-width:360px){main{padding-left:10px;padding-right:10px}.card{padding:13px}.three{gap:5px}select{font-size:15px;padding:7px 3px}.foot-inner{gap:7px}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<div class="eyebrow">試作品 v2 ／ iPhone専用</div>
+<h1>施術報告文ジェネレーター</h1>
+<p class="sub">定型文をコピー、または症状を選んで報告文を作成します。氏名・利用者情報は入力しないでください。</p>
+</header>
+<section class="card" aria-labelledby="normal-title">
+<h2 id="normal-title">① 通常の施術 <span class="badge">ワンタップ</span></h2>
+<p class="standard" id="normal-text">体調は大きな変化なしとのこと。触診にて肩背部およびハムストリングスに筋緊張を認め、硬い部位中心に四肢体幹へ施術実施。</p>
+<button type="button" class="primary wide" id="normal-copy">定型文をコピー</button>
+<p class="hint">※ 体調・触診所見が実際と一致する場合のみ使用してください。</p>
+</section>
+<section class="card" aria-labelledby="custom-title">
+<div class="section-head"><h2 id="custom-title">② 個別の症状</h2><span class="counter" id="entry-count">0件</span></div>
+<p class="sub">1件ごとに部位・左右・症状を指定します。複数追加できます。</p>
+<div id="entries"><div class="empty" id="empty">症状がある場合は「＋ 症状を追加」から入力してください。</div></div>
+<button type="button" class="secondary wide" id="add">＋ 症状を追加</button>
+<hr>
+<div class="field">
+<label for="treatment">施術内容</label>
+<select id="treatment">
+<option value="chief">主訴中心に四肢体幹へ施術実施</option>
+<option value="general">四肢体幹へ施術実施</option>
+<option value="light">刺激を控えめに四肢体幹へ施術実施</option>
+<option value="parts">選択した部位を中心に施術実施</option>
+</select>
+</div>
+<p class="hint">※ 施術しなかった部位や特別な配慮は、下の欄に記載し、生成文も必ず確認してください。</p>
+</section>
+<section class="card" aria-labelledby="note-title">
+<h2 id="note-title">③ 補足（任意）</h2>
+<textarea id="note" placeholder="例：右膝は疼痛に配慮して軽めに施術。" aria-label="追加したい施術内容"></textarea>
+<p class="hint">症状を選んだ場合は最後に追加されます。特殊なケースでは、この欄だけで報告文を作ることもできます。</p>
+</section>
+<section class="card" id="output-card" aria-labelledby="output-title">
+<div class="section-head"><h2 id="output-title">④ 完成した文章</h2><button type="button" class="ghost small-button" id="reset">すべてリセット</button></div>
+<textarea id="result" placeholder="症状を選んで、下の「文章を生成」を押してください。生成後はここを直接編集できます。" aria-label="完成した施術報告文"></textarea>
+<p id="preview-info">選択肢を変更した場合は「文章を生成」を押して反映してください。</p>
+<div id="message" class="msg" role="status" aria-live="polite"></div>
+</section>
+</main>
+<div class="foot-actions" role="group" aria-label="報告文の操作">
+<div class="foot-inner">
+<button type="button" class="secondary" id="generate">文章を生成</button>
+<button type="button" class="primary" id="copy" disabled>文章をコピー</button>
+</div>
+</div>
+<script>
+(function(){
+'use strict';
+const NORMAL='体調は大きな変化なしとのこと。触診にて肩背部およびハムストリングスに筋緊張を認め、硬い部位中心に四肢体幹へ施術実施。';
+const BODY=[
+ ['頭部','head'],['頸部','trunk'],['肩','pair'],['背部','head'],['腰部','trunk'],
+ ['上肢','pair'],['肘','pair'],['手首','pair'],['手','pair'],['股関節','pair'],
+ ['臀部','trunk'],['大腿部','pair'],['膝','pair'],['下腿','pair'],['足首','pair'],
+ ['足','pair'],['下肢','pair'],['全身','head']
+];
+const SYMPTOMS=[
+ ['pain','疼痛'],['stiff','こり'],['heavy','だるさ'],['numb','しびれ'],
+ ['swell-report','むくみ（本人の訴え）'],['swell-found','浮腫（実際に確認）']
+];
+const E=document.getElementById.bind(document);
+const container=E('entries');const note=E('note');const result=E('result');const message=E('message');
+let nextId=0;let entries=[];let changedAfterGenerate=false;let manuallyEdited=false;
+function announce(s,type){message.textContent=s;message.className='msg'+(type?' '+type:'');}
+function partType(part){const b=BODY.find(x=>x[0]===part);return b?b[1]:'head';}
+function namePart(e){
+ const p=e.part,side=e.side;
+ if(!side||partType(p)==='head')return p;
+ if(partType(p)==='trunk')return side==='両側'?p+'両側':p+(side==='右'?'右側':'左側');
+ return side==='両側'?'両'+p:side+p;
+}
+function options(arr,placeholder){return (placeholder?'<option value="">'+placeholder+'</option>':'')+arr.map(x=>'<option value="'+esc(x[0])+'">'+esc(x[1])+'</option>').join('');}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function updateCount(){E('entry-count').textContent=entries.length+'件';}
+function markChanged(){changedAfterGenerate=true;if(result.value.trim()) E('preview-info').textContent='入力内容を変更しました。「文章を生成」で更新できます。手動編集した文章は確認してから上書きします。';}
+function drawEntries(){
+ container.innerHTML='';
+ if(!entries.length){const d=document.createElement('div');d.className='empty';d.textContent='症状がある場合は「＋ 症状を追加」から入力してください。';container.append(d);}
+ entries.forEach((e,i)=>{
+  const card=document.createElement('div');card.className='entry';card.dataset.id=e.id;
+  card.innerHTML='<div class="entry-head"><span>症状 '+(i+1)+'</span><button type="button" class="ghost" data-remove="'+e.id+'" aria-label="症状 '+(i+1)+' を削除">削除</button></div>'+
+  '<div class="three">'+
+  '<div class="field"><label for="p'+e.id+'">部位</label><select id="p'+e.id+'" data-key="part"><option value="">選択</option>'+options(BODY.map(x=>[x[0],x[0]]))+'</select></div>'+
+  '<div class="field"><label for="s'+e.id+'">左右</label><select id="s'+e.id+'" data-key="side"><option value="">指定なし</option><option value="右">右</option><option value="左">左</option><option value="両側">両側</option></select></div>'+
+  '<div class="field"><label for="y'+e.id+'">症状</label><select id="y'+e.id+'" data-key="symptom">'+options(SYMPTOMS,'選択')+'</select></div>'+
+  '</div>';
+  container.append(card);
+  card.querySelector('[data-key="part"]').value=e.part;
+  card.querySelector('[data-key="side"]').value=e.side;
+  card.querySelector('[data-key="symptom"]').value=e.symptom;
+  adjustSide(card,e);
+ });
+ updateCount();
+}
+function adjustSide(card,e){
+ const s=card.querySelector('[data-key="side"]');const hide=!e.part||partType(e.part)==='head';
+ s.disabled=hide;
+ s.title=hide?'この部位は左右指定なし':'必要なときだけ左右を指定';
+ if(hide){e.side='';s.value='';}
+}
+E('add').addEventListener('click',()=>{
+ const e={id:++nextId,part:'',side:'',symptom:''};entries.push(e);drawEntries();markChanged();
+ const row=container.querySelector('[data-id="'+e.id+'"]');if(row){row.querySelector('[data-key="part"]').focus();row.scrollIntoView({block:'nearest',behavior:'smooth'});}
+ announce('症状を追加しました。部位と症状を選んでください。');
+});
+container.addEventListener('change',ev=>{
+ const el=ev.target;if(!el.matches('select[data-key]'))return;
+ const card=el.closest('.entry');if(!card)return;
+ const ent=entries.find(x=>x.id===Number(card.dataset.id));if(!ent)return;
+ ent[el.dataset.key]=el.value;
+ if(el.dataset.key==='part'){adjustSide(card,ent);}
+ markChanged();announce('');
+});
+container.addEventListener('click',ev=>{
+ const btn=ev.target.closest('[data-remove]');if(!btn)return;
+ entries=entries.filter(x=>x.id!==Number(btn.dataset.remove));drawEntries();markChanged();announce('症状を削除しました。');
+});
+E('treatment').addEventListener('change',markChanged);
+note.addEventListener('input',markChanged);
+function joinJapanese(items){if(items.length<2)return items[0]||'';return items.slice(0,-1).join('、')+'および'+items[items.length-1];}
+function mergePair(items){ // Right and left of the same paired body part can be summarized as bilateral.
+ const seen=new Set();const out=[];
+ for(const e of items){
+  if(seen.has(e))continue;
+  if(partType(e.part)==='pair' && (e.side==='右'||e.side==='左')){
+   const other=items.find(x=>x!==e&&x.part===e.part&&x.side!=='両側'&&x.side!==' '&&x.side!=='')
+   if(other && other.side!==e.side){seen.add(e);seen.add(other);out.push({part:e.part,side:'両側'});continue;}
+  }
+  seen.add(e);out.push(e);
+ }
+ return out;
+}
+function build(){
+ if(!entries.length){
+  const free=note.value.trim();
+  if(free)return /[。！？!?]$/.test(free)?free:free+'。';
+  throw Error('「＋ 症状を追加」で入力するか、「補足」に文章を入力してください。通常時は定型文コピーが使えます。');
+ }
+ for(const [i,e] of entries.entries()){
+  if(!e.part||!e.symptom)throw Error('症状 '+(i+1)+' の「部位」と「症状」を選んでください。');
+ }
+ const ordered=[];const groups=new Map();
+ for(const e of entries){
+  if(!groups.has(e.symptom)){groups.set(e.symptom,[]);ordered.push(e.symptom);}
+  const arr=groups.get(e.symptom);
+  if(!arr.some(x=>x.part===e.part&&x.side===e.side))arr.push(e);
+ }
+ const reported=[];const observed=[];
+ const labels={pain:'疼痛',stiff:'こり',heavy:'だるさ',numb:'しびれ','swell-report':'むくみ'};
+ for(const sym of ordered){
+  const places=joinJapanese(mergePair(groups.get(sym)).map(namePart));
+  if(sym==='swell-found')observed.push(places+'に浮腫を認める');
+  else reported.push(places+'に'+labels[sym]);
+ }
+ const phrases=[];
+ if(reported.length)phrases.push(reported.join('、')+'の訴えあり。');
+ if(observed.length)phrases.push(observed.join('、')+'。');
+ const treatment=E('treatment').value;
+ if(treatment==='chief')phrases.push('主訴中心に四肢体幹へ施術実施。');
+ if(treatment==='general')phrases.push('四肢体幹へ施術実施。');
+ if(treatment==='light')phrases.push('刺激を控えめに四肢体幹へ施術実施。');
+ if(treatment==='parts'){
+  const unique=[];
+  for(const e of entries){const name=namePart(e);if(!unique.includes(name))unique.push(name);}
+  phrases.push(joinJapanese(unique)+'を中心に施術実施。');
+ }
+ const n=note.value.trim();if(n)phrases.push(/[。！？!?]$/.test(n)?n:n+'。');
+ return phrases.join('');
+}
+E('generate').addEventListener('click',()=>{
+ try{
+  const output=build();
+  if(manuallyEdited && result.value.trim() && !window.confirm('現在の文章を上書きして再生成しますか？\n手動で修正した内容は消えます。'))return;
+  result.value=output;result.dataset.hasText='1';manuallyEdited=false;changedAfterGenerate=false;
+  E('preview-info').textContent='完成文を確認し、必要なら直接編集してください。';
+  syncCopy();announce('文章を生成しました。内容を確認してからコピーしてください。','ok');
+  E('output-card').scrollIntoView({behavior:'smooth',block:'start'});
+ }catch(err){announce(err.message,'warn');}
+});
+result.addEventListener('input',()=>{
+ manuallyEdited=true;syncCopy();
+ E('preview-info').textContent='手動編集した文章です。再生成すると上書きされます。';
+ announce('');
+});
+function syncCopy(){E('copy').disabled=!result.value.trim();}
+async function copyText(text){
+ if(!text.trim()){announce('コピーする文章がありません。','warn');return;}
+ let ok=false;
+ try{if(navigator.clipboard && navigator.clipboard.writeText){await navigator.clipboard.writeText(text);ok=true;}}catch(e){}
+ if(!ok){
+  const helper=document.createElement('textarea');helper.value=text;
+  helper.style.cssText='position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;font-size:16px;';
+  document.body.appendChild(helper);helper.focus();helper.select();helper.setSelectionRange(0,helper.value.length);
+  try{ok=!!document.execCommand('copy');}catch(e){}
+  helper.remove();
+ }
+ if(ok){announce('コピーできました。専用ソフトへ貼り付けてください。','ok');return;}
+ if(text===result.value){result.focus();result.select();}
+ else{result.value=text;manuallyEdited=false;syncCopy();result.focus();result.select();}
+ announce('自動コピーが制限されました。文章を選択したので「コピー」をタップしてください。','warn');
+}
+E('normal-copy').addEventListener('click',()=>copyText(NORMAL));
+E('copy').addEventListener('click',()=>{
+ if(changedAfterGenerate && result.value.trim() && !window.confirm('選択肢や補足を変更しましたが、完成文はまだ更新されていません。今表示されている文章をコピーしますか？'))return;
+ copyText(result.value);
+});
+E('reset').addEventListener('click',()=>{
+ const used=entries.length||note.value.trim()||result.value.trim()||E('treatment').value!=='chief';
+ if(used&&!window.confirm('入力中の内容と完成文をすべて消しますか？'))return;
+ entries=[];nextId=0;note.value='';result.value='';E('treatment').value='chief';
+ changedAfterGenerate=false;manuallyEdited=false;drawEntries();syncCopy();
+ E('preview-info').textContent='選択肢を変更した場合は「文章を生成」を押して反映してください。';
+ announce('入力内容をリセットしました。','ok');
+ window.scrollTo({top:0,behavior:'smooth'});
+});
+drawEntries();syncCopy();
+})();
+</script>
+</body>
+</html>
